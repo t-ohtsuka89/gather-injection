@@ -71,10 +71,12 @@ class WindowManager:
         async with self.session.get(url) as response:
             windows = await response.json()
 
-        logger.info(f"取得したウィンドウ情報: {windows}")
+        logger.info(f"取得したウィンドウ数: {len(windows)}")
 
         for window in windows:
             websocket_url = window["webSocketDebuggerUrl"]
+            window_url = window.get("url", "不明")
+            logger.info(f"ウィンドウURL: {window_url}")
             try:
                 window["websocket"] = await websockets.connect(websocket_url)
                 logger.info(f"WebSocket接続が確立されました: {websocket_url}")
