@@ -1,0 +1,26 @@
+[project]
+name = "gather-injection"
+description = ""
+requires-python = ">=3.12"
+readme = "README.md"
+dependencies = []
+dynamic = ["version"]
+
+[tool.uv]
+dev-dependencies = ["pre-commit>=3.8.0", "ruff>=0.6.3"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+gather-injection = "app.main:main"
+
+[tool.hatch.envs.default]
+installer = "uv"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.hatch.version]
+path = "app/__about__.py"
