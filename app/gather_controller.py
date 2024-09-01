@@ -32,6 +32,7 @@ class GatherController:
         await self.script_executor.execute_scripts(script_paths)
 
     async def stop(self):
-        await self.window_manager.close()
+        if self.window_manager:
+            await self.window_manager.close()
         self.script_executor = None
         logger.info("Gatherリモートデバッグ接続終了")
