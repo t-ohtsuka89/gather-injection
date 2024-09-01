@@ -23,6 +23,7 @@ class GatherController:
             logger.info("Gather起動成功")
         except Exception as e:
             logger.error(f"Gather起動エラー: {e}", exc_info=True)
+            await self.stop()
             raise GatherInjectionError(f"Gather起動エラー: {e}") from e
 
     async def execute_scripts(self, script_paths):
