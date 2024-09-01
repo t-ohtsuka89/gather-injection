@@ -7,12 +7,13 @@ from app.config import Config
 from app.exceptions import GatherInjectionError
 from app.utils import connect_to_port
 
+logger = logging.getLogger(__name__)
+
 
 class GatherLauncher:
     def __init__(self, gather_path: str, port: int):
         self.gather_path = gather_path
         self.port = port
-        self.logger = logging.getLogger(__name__)
 
     async def launch(self):
         try:
@@ -32,11 +33,11 @@ class GatherLauncher:
             raise GatherInjectionError(
                 f"デバッグポート {self.port} が利用可能になりませんでした。"
             )
-        self.logger.info(f"デバッグポート {self.port} が利用可能になりました。")
+        logger.info(f"デバッグポート {self.port} が利用可能になりました。")
 
     async def _open_gather(self):
         command = self._get_platform_specific_command()
-        self.logger.info(f"実行するコマンド: {command}")
+        logger.info(f"実行するコマンド: {command}")
 
         process = await asyncio.create_subprocess_shell(
             command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
@@ -46,9 +47,7 @@ class GatherLauncher:
         if process.returncode != 0:
             raise GatherInjectionError(f"Gatherを開けませんでした: {stderr.decode()}")
 
-        self.logger.info(
-            f"Gatherを開きました: {self.gather_path} (ポート: {self.port})"
-        )
+        logger.info(f"Gatherを開きました: {self.gather_path} (ポート: {self.port})")
 
     def _get_platform_specific_command(self) -> str:
         commands: dict[str, Callable[[], str]] = {
