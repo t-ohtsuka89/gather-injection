@@ -1,9 +1,10 @@
 import argparse
 import asyncio
 import logging
-from app.gather_controller import GatherController
+
 from app.config import Config
 from app.exceptions import GatherInjectionError
+from app.gather_controller import GatherController
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
@@ -35,10 +36,13 @@ def parse_arguments():
 
 async def async_main():
     args = parse_arguments()
+    logger.info(f"Gatherパス: {args.gather_path}, ポート: {args.port}")
     controller = GatherController(args.gather_path, args.port)
     try:
+        logger.info("Gatherコントローラーを開始します")
         await controller.start()
         if args.scripts:
+            logger.info(f"スクリプトを実行します: {args.scripts}")
             await controller.execute_scripts(args.scripts)
         else:
             logger.info(
@@ -47,6 +51,7 @@ async def async_main():
     except GatherInjectionError as e:
         logger.error(f"エラーが発生しました: {e}")
     finally:
+        logger.info("Gatherコントローラーを停止します")
         await controller.stop()
 
 

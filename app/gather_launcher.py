@@ -17,23 +17,28 @@ class GatherLauncher:
 
     async def launch(self):
         try:
+            logger.info(f"Gatherの起動を開始します: {self.gather_path}")
             await self._open_gather()
             await self._wait_for_debug_port()
+            logger.info("Gatherの起動が完了しました")
         except Exception as e:
+            logger.error(f"Gatherの起動中にエラーが発生しました: {e}")
             raise GatherInjectionError(
                 f"Gatherの起動中にエラーが発生しました: {e}"
             ) from e
 
     async def _wait_for_debug_port(self):
+        logger.info(f"デバッグポート {self.port} の待機を開始します")
         if not await connect_to_port(
             self.port,
             Config.MAX_ATTEMPTS_DEBUG_PORT,
             Config.DEBUG_PORT_DELAY,
         ):
+            logger.error(f"デバッグポート {self.port} が利用可能になりませんでした")
             raise GatherInjectionError(
                 f"デバッグポート {self.port} が利用可能になりませんでした。"
             )
-        logger.info(f"デバッグポート {self.port} が利用可能になりました。")
+        logger.info(f"デバッグポート {self.port} が利用可能になりました")
 
     async def _open_gather(self):
         command = self._get_platform_specific_command()
