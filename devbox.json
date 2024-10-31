@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.13.3/.schema/devbox.schema.json",
+  "packages": [
+    "python3@latest",
+    "uv@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "uv sync --dev && uv run pre-commit install && source .venv/bin/activate"
+    ],
+    "scripts": {
+      "gather-injection": "python app/main.py \"$@\""
+    }
+  }
+}
