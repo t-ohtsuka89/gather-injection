@@ -2,26 +2,18 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
 	"name": "Python 3",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"build": {
 		"context": "..",
-		"dockerfile": "Dockerfile"
+		"dockerfile": "Dockerfile",
+		"args": {
+			"UV_VERSION": "0.5.11",
+			"DEBIAN_VERSION": "bookworm"
+		}
 	},
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/dhoeric/features/hadolint:1": {},
 		"ghcr.io/devcontainers-contrib/features/hatch:2.0.17": {}
 	},
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "uv sync --dev",
-	"postStartCommand": "uv run pre-commit install",
-
-	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -47,6 +39,13 @@
 			}
 		}
 	},
-
+	"containerEnv": {
+		"DISPLAY": "dummy",
+		"PYTHONUNBUFFERED": "True",
+		"UV_LINK_MODE": "copy",
+		"UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv"
+	},
+	"postCreateCommand": "uv sync --frozen",
+	"postStartCommand": "uv run pre-commit install",
 	"remoteUser": "vscode"
 }
