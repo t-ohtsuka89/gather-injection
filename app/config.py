@@ -1,8 +1,17 @@
+import logging
 import os
 import socket
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Set
+
+logger = logging.getLogger(__name__)
+
+
+class ConfigValidationError(Exception):
+    """設定値のバリデーションエラー"""
+
+    pass
 
 
 @dataclass
@@ -14,10 +23,21 @@ class ScriptConfig:
             os.getenv("GATHER_SCRIPT_MAX_SIZE", str(1024 * 1024))
         )
     )
-    ALLOWED_EXTENSIONS: set[str] = field(default_factory=lambda: {"js"})
+    ALLOWED_EXTENSIONS: Set[str] = field(default_factory=lambda: {"js"})
     EXECUTION_TIMEOUT: float = field(
         default_factory=lambda: float(os.getenv("GATHER_SCRIPT_TIMEOUT", "30.0"))
     )
+
+    def validate(self) -> None:
+        """設定値の検証を行います"""
+        if self.MAX_SIZE_BYTES <= 0:
+            raise ConfigValidationError("MAX_SIZE_BYTESは正の値である必要があります")
+        if self.EXECUTION_TIMEOUT <= 0:
+            raise ConfigValidationError("EXECUTION_TIMEOUTは正の値である必要があります")
+        if not self.ALLOWED_EXTENSIONS:
+            raise ConfigValidationError(
+                "ALLOWED_EXTENSIONSは少なくとも1つの拡張子を含む必要があります"
+            )
 
 
 @dataclass
@@ -42,6 +62,25 @@ class NetworkConfig:
         default_factory=lambda: int(os.getenv("GATHER_DEBUG_PORT_DELAY", "1"))
     )
 
+    def validate(self) -> None:
+        """設定値の検証を行います"""
+        if self.WINDOW_TIMEOUT <= 0:
+            raise ConfigValidationError("WINDOW_TIMEOUTは正の値である必要があります")
+        if self.GAME_OBJECT_TIMEOUT <= 0:
+            raise ConfigValidationError(
+                "GAME_OBJECT_TIMEOUTは正の値である必要があります"
+            )
+        if not self.TARGET_URL_PREFIX.startswith(("http://", "https://")):
+            raise ConfigValidationError(
+                "TARGET_URL_PREFIXは有効なURLプレフィックスである必要があります"
+            )
+        if self.MAX_ATTEMPTS_DEBUG_PORT <= 0:
+            raise ConfigValidationError(
+                "MAX_ATTEMPTS_DEBUG_PORTは正の値である必要があります"
+            )
+        if self.DEBUG_PORT_DELAY <= 0:
+            raise ConfigValidationError("DEBUG_PORT_DELAYは正の値である必要があります")
+
 
 @dataclass
 class AppConfig:
@@ -59,6 +98,20 @@ class AppConfig:
     RETRY_DELAY: float = field(
         default_factory=lambda: float(os.getenv("GATHER_RETRY_DELAY", "1.0"))
     )
+
+    def validate(self) -> None:
+        """設定値の検証を行います"""
+        valid_log_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if self.LOG_LEVEL not in valid_log_levels:
+            raise ConfigValidationError(
+                f"LOG_LEVELは{valid_log_levels}のいずれかである必要があります"
+            )
+        if not self.GATHER_APP_NAME:
+            raise ConfigValidationError("GATHER_APP_NAMEは空であってはいけません")
+        if self.RETRY_COUNT <= 0:
+            raise ConfigValidationError("RETRY_COUNTは正の値である必要があります")
+        if self.RETRY_DELAY <= 0:
+            raise ConfigValidationError("RETRY_DELAYは正の値である必要があります")
 
 
 @dataclass
@@ -81,6 +134,20 @@ class Config:
         return { status: 'waiting', message: 'ページの読み込み中です。' };
     })()
     """
+
+    def __post_init__(self):
+        """設定値の初期化後に検証を行います"""
+        try:
+            self.validate()
+        except ConfigValidationError as e:
+            logger.error(f"設定値の検証に失敗しました: {e}")
+            raise
+
+    def validate(self) -> None:
+        """全ての設定値の検証を行います"""
+        self.script.validate()
+        self.network.validate()
+        self.app.validate()
 
     @staticmethod
     def get_free_port() -> int:
