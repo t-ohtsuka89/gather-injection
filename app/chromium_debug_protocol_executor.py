@@ -5,16 +5,24 @@ logger = logging.getLogger(__name__)
 
 
 class ChromiumDebugProtocolExecutor:
-    async def execute_script(self, window, script_path):
+    async def execute_script(self, window, script_content: str):
+        """
+        JavaScriptコードを実行します。
+
+        Args:
+            window: デバッグウィンドウの情報
+            script_content: 実行するJavaScriptコードの内容
+
+        Returns:
+            実行結果
+
+        Raises:
+            RuntimeError: JavaScriptの実行中にエラーが発生した場合
+        """
         try:
-            with open(script_path, "r") as file:
-                js_code = file.read()
-            return await self._eval_js(window, js_code)
-        except FileNotFoundError:
-            raise FileNotFoundError(
-                f"JavaScriptファイルが見つかりません: {script_path}"
-            )
+            return await self._eval_js(window, script_content)
         except Exception as e:
+            logger.error(f"JavaScriptの実行中にエラーが発生: {e}")
             raise RuntimeError(f"JavaScriptの実行中にエラーが発生しました: {e}")
 
     async def _eval_js(self, window, expression):
@@ -40,14 +48,16 @@ class ChromiumDebugProtocolExecutor:
             if "result" in response_data:
                 return self._parse_result(response_data["result"]["result"])
             elif "error" in response_data:
+                error_message = response_data["error"].get("message", "不明なエラー")
+                logger.error(f"JavaScript実行エラー: {error_message}")
                 raise RuntimeError(
-                    f"JavaScriptの実行中にエラーが発生しました: {response_data['error'].get('message', '不明なエラー')}"
+                    f"JavaScriptの実行中にエラーが発生しました: {error_message}"
                 )
             else:
                 raise ValueError("予期しないレスポンス形式です")
         except Exception as e:
             logger.exception(f"JavaScript実行中に例外が発生しました: {e}")
-            return None
+            raise
 
     @staticmethod
     def _parse_result(result):
