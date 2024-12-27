@@ -6,7 +6,8 @@
   ],
   "shell": {
     "init_hook": [
-      "uv sync --dev && uv run pre-commit install && source .venv/bin/activate"
+      "uv sync --dev && uv run pre-commit install && source .venv/bin/activate",
+      "[ -f .env ] && set -a && . .env && set +a"
     ],
     "scripts": {
       "gather-injection": "python app/main.py \"$@\""
