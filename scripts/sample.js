@@ -1,3 +1,5 @@
+// sample script: create teleport buttons
+
 const createTeleportButtons = () => {
     const teleportButton = (text, x, y) => {
         const btn = document.createElement('button');
