@@ -17,6 +17,7 @@ class WindowManager:
         self.port = port
         self.session = None
         self.window = None
+        self.config = Config()
 
     async def initialize(self):
         await self._wait_for_debug_port()
@@ -27,14 +28,19 @@ class WindowManager:
     async def _find_and_connect_window(self):
         async with aiohttp.ClientSession() as self.session:
             start_time = asyncio.get_event_loop().time()
-            while asyncio.get_event_loop().time() - start_time < Config.WINDOW_TIMEOUT:
+            while (
+                asyncio.get_event_loop().time() - start_time
+                < self.config.network.WINDOW_TIMEOUT
+            ):
                 try:
                     windows = await self._get_electron_windows()
                     self.window = next(
                         (
                             w
                             for w in windows
-                            if w.get("url", "").startswith(Config.TARGET_URL_PREFIX)
+                            if w.get("url", "").startswith(
+                                self.config.network.TARGET_URL_PREFIX
+                            )
                         ),
                         None,
                     )
@@ -47,7 +53,9 @@ class WindowManager:
 
     async def _wait_for_debug_port(self):
         if not await connect_to_port(
-            self.port, Config.MAX_ATTEMPTS_DEBUG_PORT, Config.DEBUG_PORT_DELAY
+            self.port,
+            self.config.network.MAX_ATTEMPTS_DEBUG_PORT,
+            self.config.network.DEBUG_PORT_DELAY,
         ):
             raise WindowNotFoundError(
                 f"デバッグポート {self.port} が利用可能になりませんでした。"
@@ -55,7 +63,10 @@ class WindowManager:
 
     async def _wait_for_game_object(self):
         start_time = asyncio.get_event_loop().time()
-        while asyncio.get_event_loop().time() - start_time < Config.GAME_OBJECT_TIMEOUT:
+        while (
+            asyncio.get_event_loop().time() - start_time
+            < self.config.network.GAME_OBJECT_TIMEOUT
+        ):
             if await self._check_game_object():
                 return
             await asyncio.sleep(5)

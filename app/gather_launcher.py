@@ -14,6 +14,7 @@ class GatherLauncher:
     def __init__(self, gather_path: str, port: int):
         self.gather_path = gather_path
         self.port = port
+        self.config = Config()
 
     async def launch(self):
         try:
@@ -31,8 +32,8 @@ class GatherLauncher:
         logger.info(f"デバッグポート {self.port} の待機を開始します")
         if not await connect_to_port(
             self.port,
-            Config.MAX_ATTEMPTS_DEBUG_PORT,
-            Config.DEBUG_PORT_DELAY,
+            self.config.network.MAX_ATTEMPTS_DEBUG_PORT,
+            self.config.network.DEBUG_PORT_DELAY,
         ):
             logger.error(f"デバッグポート {self.port} が利用可能になりませんでした")
             raise GatherInjectionError(

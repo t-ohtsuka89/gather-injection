@@ -12,14 +12,17 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
+# 設定の初期化
+config = Config()
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Gatherを開くツール")
     parser.add_argument(
         "-g",
         "--gather-path",
-        default=Config.GATHER_APP_NAME,
-        help=f"Gatherアプリケーションのパスまたは名前（デフォルト: {Config.GATHER_APP_NAME}）",
+        default=config.app.GATHER_APP_NAME,
+        help=f"Gatherアプリケーションのパスまたは名前（デフォルト: {config.app.GATHER_APP_NAME}）",
     )
     parser.add_argument(
         "-s", "--scripts", nargs="+", help="実行するスクリプトのパス", required=False
