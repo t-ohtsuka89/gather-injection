@@ -149,7 +149,7 @@ class WindowManager:
     async def _check_game_object(self):
         try:
             await self._ensure_websocket_connection()
-            result = await self._eval_js(Config.GAME_OBJECT_CHECK_SCRIPT)
+            result = await self._eval_js(Config.get_game_object_check_script())
             return result.get("status") == "success"
         except Exception as e:
             logger.error(f"ゲームオブジェクト検出中にエラーが発生しました: {e}")

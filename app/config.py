@@ -1,5 +1,6 @@
 import socket
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass
@@ -15,17 +16,19 @@ class Config:
     MAX_ATTEMPTS_DEBUG_PORT: int = 30
     DEBUG_PORT_DELAY: int = 1
 
-    GAME_OBJECT_CHECK_SCRIPT: str = """
-    (function() {
-        if (typeof window.game !== 'undefined' && window.game.players !== undefined) {
-            return { status: 'success', message: 'ゲームオブジェクトが利用可能になりました。' };
-        }
-        if (document.readyState === 'complete') {
-            return { status: 'loading', message: 'ページは読み込まれましたが、ゲームオブジェクトはまだ利用できません。' };
-        }
-        return { status: 'waiting', message: 'ページの読み込み中です。' };
-    })()
-    """
+    _game_object_check_script: str = None
+
+    @classmethod
+    def get_game_object_check_script(cls) -> str:
+        """game_object_check.jsの内容を読み込んで返します"""
+        if cls._game_object_check_script is None:
+            js_file_path = Path(__file__).parent / "static/js/game_object_check.js"
+            try:
+                with open(js_file_path, "r") as f:
+                    cls._game_object_check_script = f.read()
+            except FileNotFoundError:
+                raise ValueError(f"JavaScriptファイルが見つかりません: {js_file_path}")
+        return cls._game_object_check_script
 
     @staticmethod
     def get_free_port():
