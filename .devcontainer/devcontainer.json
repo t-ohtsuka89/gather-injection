@@ -12,7 +12,7 @@
 	},
 	"features": {
 		"ghcr.io/dhoeric/features/hadolint:1": {},
-		"ghcr.io/devcontainers-contrib/features/hatch:2.0.17": {}
+		"ghcr.io/devcontainers-contrib/features/hatch:2.0.18": {}
 	},
 	"customizations": {
 		"vscode": {
